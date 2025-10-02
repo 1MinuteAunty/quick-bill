@@ -4,8 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     working_dir: /workspace/frontend
-    command: npm start -- --host 0.0.0.0 --port 4200
-    user: "1000:1000"
+    command: "npm start -- --host 0.0.0.0 --port 4200"
     ports:
       - 127.0.0.1:4200:4200
     volumes:
