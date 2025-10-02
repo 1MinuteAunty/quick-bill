@@ -9,4 +9,3 @@ services:
       - 127.0.0.1:4200:4200
     volumes:
       - ./:/workspace
-      - /workspace/frontend/node_modules
