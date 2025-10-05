@@ -1,11 +1,50 @@
 services:
+  mysql:
+    image: mysql:9.4.0
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: quick_bill
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppassword", "--silent"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 80s
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  liquibase:
+    image: liquibase:latest
+    environment:
+      INSTALL_MYSQL: "true"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./databases/mysql/liquibase/changelog:/liquibase/changelog
+      - ./databases/mysql/liquibase/liquibase.properties:/liquibase/liquibase.properties
+    entrypoint: >
+      sh -c "
+      echo 'MySQL health check passed, waiting additional 15 seconds...';
+      sleep 15;
+      echo 'Running Liquibase migrations...';
+      docker-entrypoint.sh --defaults-file=/liquibase/liquibase.properties update
+      "
+    restart: "no"
+
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
-    working_dir: /workspace/frontend
+    working_dir: /workspace
     command: "npm start -- --host 0.0.0.0 --port 4200"
     ports:
       - 127.0.0.1:4200:4200
     volumes:
-      - ./:/workspace
+      - ./frontend:/workspace
+
+volumes:
+  mysql_data:
+    driver: local #what is this
